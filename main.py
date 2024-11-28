@@ -16,12 +16,14 @@ from machine_i2c_lcd import I2cLcd
 import hmac
 import base64
 import md5
+import deflate
+import io
+import socket
 
 # Global variables so it can be persistent
 solar_usage = {}
 led_bright = 800
 CRED_FILE = "config/credentials.env"
-SOLIS_FILE = "config/solis.env"
 
 # Device descriptors
 # define the display
@@ -70,60 +72,20 @@ def stringTime(thisTime):
     return stringTime
 
 
-def getSolis(solisInfo):
+def getSolis(sfd):
     solar_dict = {}
-    url = solisInfo["solisUrl"]
-    CanonicalizedResource = solisInfo["solisPath"]
 
-    req = url + CanonicalizedResource
-    VERB = "POST"
-    Content_Type = "application/json"
-
-    Date = stringTime(gmtime())
-
-    Body = (
-        '{"pageSize":100,  "id": "'
-        + solisInfo["solisId"].decode()
-        + '", "sn": "'
-        + solisInfo["solisSn"].decode()
-        + '" }'
-    )
-    Content_MD5 = base64.b64encode(md5.digest(Body.encode("utf-8"))).decode("utf-8")
-    encryptStr = (
-        VERB
-        + "\n"
-        + Content_MD5
-        + "\n"
-        + Content_Type
-        + "\n"
-        + Date
-        + "\n"
-        + CanonicalizedResource
-    )
-    h = hmac.new(
-        solisInfo["solisSecret"].decode().encode("utf-8"),
-        msg=encryptStr.encode("utf-8"),
-        digestmod=sha1,
-    )
-    Sign = base64.b64encode(h.digest())
-    Authorization = "API " + solisInfo["solisKey"].decode() + ":" + Sign.decode("utf-8")
-
-    header = {
-        "Content-MD5": Content_MD5,
-        "Content-Type": Content_Type,
-        "Date": Date,
-        "Authorization": Authorization,
-    }
     solar_text = ""
     solar_resp = "!!!"
     try:
         gc.collect()
         gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
-        print("\n\nPOST to " + url + "...", end="")
-        resp = requests.post(req, data=Body, headers=header, timeout=60)
-        print("[" + str(resp.status_code) + "]")
-        solar_text = resp.text
-        solar_resp = resp.status_code
+        packet, address = sfd.recvfrom(9000)
+        #solar_data = zlib.decompress(packet,15+32)
+        sdata_stream = deflate.DeflateIO(io.BytesIO(packet), deflate.GZIP)
+        solar_data = sdata_stream.read()
+        solar_text = str(solar_data,'utf-8')
+        solar_resp = 500
     except Exception as e:
         print("get solar_usage didn't work sorry because this: " + str(e))
 
@@ -214,13 +176,22 @@ def display_data(solar_usage, lcd, force=False):
         )
 
 
-async def timer_solis_data(solisInfo, lcd):
+async def timer_solis_data(lcd):
     global solar_usage
     solar_usage["prev_battery_int"] = 0
     solar_usage["prev_timestamp"] = "0"
+
+    # create socket to listen for the broadcast packets
+    # sent periodically by the solar app
+    print("Creating UDP socket for listen")
+    solar_sfd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    solar_sfd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    listen_address = ('0.0.0.0',52004)
+    solar_sfd.bind(listen_address)
+
     while True:
         lcd_line(lcd, chr(6), 1, 8)
-        solar_dict = getSolis(solisInfo)
+        solar_dict = getSolis(solar_sfd)
         if "timestamp" in solar_dict:
             lcd_line(lcd, " ", 1, 8)
             solar_usage.update(solar_dict)
@@ -233,7 +204,6 @@ async def timer_solis_data(solisInfo, lcd):
             print("No data returned")
             if "resp" in solar_dict:
                 solar_usage["resp"] = solar_dict["resp"]
-        await uasyncio.sleep(45)
 
 
 async def wait_brightness():
@@ -327,8 +297,7 @@ async def main():
     solisInfo = {}
     # Now separate credentials
     global CRED_FILE
-    global SOLIS_FILE
-
+ 
     try:
         with open(CRED_FILE, "rb") as f:
             contents = f.read().split(b",")
@@ -356,8 +325,7 @@ async def main():
     # Initial display goodness
     lcd.clear()
     lcd.hide_cursor()
-    lcd_line(lcd, "Solis data - SN:")
-    lcd_line(lcd, solisInfo["solisSn"].decode(), 1)
+    lcd_line(lcd, "Starting up...")
     sleep(2)
 
     # Configure the network
@@ -394,7 +362,7 @@ async def main():
     # Main loop
     # Get the solis data
 
-    uasyncio.create_task(timer_solis_data(solisInfo, lcd))
+    uasyncio.create_task(timer_solis_data(lcd))
     uasyncio.create_task(wait_brightness())
     uasyncio.create_task(wait_led_button())
     uasyncio.create_task(wait_reset_button())
