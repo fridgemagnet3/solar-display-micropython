@@ -1,3 +1,5 @@
+The primary change on this fork is that the solar data is received locally via UDP rather than directly querying the Solis cloud server. See my [modbus-solis5g](https://github.com/fridgemagnet3/modbus-solis5g) for rationale.
+
 # Solis Cloud API display for ESP32
 
 A version of a Solis Cloud API solar display using MicroPython and a 1602 LCD screen, for the ESP32 board.
