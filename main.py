@@ -19,6 +19,7 @@ import md5
 import deflate
 import io
 import socket
+import select
 
 # Global variables so it can be persistent
 solar_usage = {}
@@ -71,7 +72,16 @@ def stringTime(thisTime):
     )
     return stringTime
 
-
+# returns a string representation of a floating point
+# number (expressed as a string) rounded to specified precision
+# (default 1)
+def roundStr(float_str,ndigits=1):
+    try:
+        f = round(float(float_str),ndigits)
+        return str(f)        
+    except ValueError:
+        return "0.0" ;
+    
 def getSolis(sfd):
     solar_dict = {}
 
@@ -80,6 +90,17 @@ def getSolis(sfd):
     try:
         gc.collect()
         gc.threshold(gc.mem_free() // 4 + gc.mem_alloc())
+
+        # wait for new data to arrive - up to 30s
+        rdescriptors = []
+        wdescriptors = []
+        xdescriptors = []
+        rdescriptors.append(sfd)
+        ready_set = select.select(rdescriptors,wdescriptors,xdescriptors,30)
+        # bail if nothing arrived, this triggers the 'no data returned' message on the LCD
+        if len(ready_set[0])==0:
+            return solar_dict
+        
         packet, address = sfd.recvfrom(9000)
         #solar_data = zlib.decompress(packet,15+32)
         sdata_stream = deflate.DeflateIO(io.BytesIO(packet), deflate.GZIP)
@@ -94,17 +115,18 @@ def getSolis(sfd):
     if solar_text != "":
         for each_field in solar_text.split(","):
             if '"dataTimestamp":' in each_field:
-                solar_dict["timestamp"] = each_field.split(":")[1]
+                dataTimestamp = each_field.split(":")[1]
+                solar_dict["timestamp"] = dataTimestamp.replace('"', "")
             if '"pac":' in each_field:
-                solar_dict["solar_in"] = each_field.split(":")[1]
+                solar_dict["solar_in"] = roundStr(each_field.split(":")[1])
             if '"batteryCapacitySoc":' in each_field:
                 solar_dict["battery_per"] = each_field.split(":")[1]
             if '"psum":' in each_field:
-                solar_dict["grid_in"] = each_field.split(":")[1]
+                solar_dict["grid_in"] = roundStr(each_field.split(":")[1])
             if '"familyLoadPower":' in each_field:
-                solar_dict["power_used"] = each_field.split(":")[1]
+                solar_dict["power_used"] = roundStr(each_field.split(":")[1])
             if '"eToday":' in each_field:
-                solar_dict["solar_today"] = each_field.split(":")[1]
+                solar_dict["solar_today"] = roundStr(each_field.split(":")[1])
     return solar_dict
 
 
@@ -128,7 +150,7 @@ def display_data(solar_usage, lcd, force=False):
     print("grid_in is: " + solar_usage["grid_in"])
     print("power_used is: " + solar_usage["power_used"])
     print("solar_today is: " + solar_usage["solar_today"] + "\n")
-    if force or (solar_usage["timestamp"] != solar_usage["prev_timestamp"]):
+    if force or (int(solar_usage["timestamp"]) > int(solar_usage["prev_timestamp"])):
         print("Solis data has been updated - do the LCD thing...")
         # LCD business
         if battery_int < 90:
@@ -174,6 +196,8 @@ def display_data(solar_usage, lcd, force=False):
             + "kW"
             + " " * (4 - len(solar_usage["power_used"][:4]))
         )
+    else:
+        print("old data, discarding")
 
 
 async def timer_solis_data(lcd):
@@ -258,7 +282,7 @@ async def display_solar_today(lcd):
         print("Last updated: " + solar_usage["timestamp"])
         lcd_line(lcd, "Today: " + solar_usage["solar_today"][:4] + "kW")
         solis_time = stringTime(
-            localtime(int(float(solar_usage["timestamp"].replace('"', "")) / 1000))
+            localtime(int(float(solar_usage["timestamp"]) / 1000))
         )[-12:].replace("GMT", "UTC")
         lcd_line(lcd, "at " + solis_time, 1)
     else:
