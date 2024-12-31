@@ -16,7 +16,6 @@ from machine_i2c_lcd import I2cLcd
 import hmac
 import base64
 import md5
-import deflate
 import io
 import socket
 import select
@@ -97,15 +96,13 @@ def getSolis(sfd):
         xdescriptors = []
         rdescriptors.append(sfd)
         ready_set = select.select(rdescriptors,wdescriptors,xdescriptors,30)
-        # bail if nothing arrived, this triggers the 'no data returned' message on the LCD
+        # bail if nothing arrived, this triggers the 'no data returned' condition
+        # which would originally occur in the event of a comms failure to the Solis cloud
         if len(ready_set[0])==0:
             return solar_dict
         
         packet, address = sfd.recvfrom(9000)
-        #solar_data = zlib.decompress(packet,15+32)
-        sdata_stream = deflate.DeflateIO(io.BytesIO(packet), deflate.GZIP)
-        solar_data = sdata_stream.read()
-        solar_text = str(solar_data,'utf-8')
+        solar_text = str(packet,'utf-8')
         solar_resp = 500
     except Exception as e:
         print("get solar_usage didn't work sorry because this: " + str(e))
@@ -210,11 +207,11 @@ async def timer_solis_data(lcd):
     print("Creating UDP socket for listen")
     solar_sfd = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     solar_sfd.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    listen_address = ('0.0.0.0',52004)
+    listen_address = ('0.0.0.0',52005)
     solar_sfd.bind(listen_address)
 
     while True:
-        lcd_line(lcd, chr(6), 1, 8)
+        #lcd_line(lcd, chr(6), 1, 8)
         solar_dict = getSolis(solar_sfd)
         if "timestamp" in solar_dict:
             lcd_line(lcd, " ", 1, 8)

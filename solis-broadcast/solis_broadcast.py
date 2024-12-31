@@ -9,7 +9,6 @@ import requests
 import json
 import socket
 import time
-import gzip
 import syslog
 from collections import OrderedDict
 
@@ -155,14 +154,8 @@ while True:
     else:
         bcount+=1
     if data!=None:
-        #c_data = gzip.compress(bytes(min_data,"utf-8"))
-        # alternate sending the full vs minimal subset of data
-        if (bcount % 2)==0:
-            c_data = gzip.compress(bytes(data,"utf-8"))
-        else:
-            c_data = gzip.compress(bytes(min_data,"utf-8"))
         try:
-            sfd.sendto(c_data, ('255.255.255.255', 52004) )
+            sfd.sendto(bytes(min_data,"utf-8"), ('255.255.255.255', 52005) )
         except socket.error:
             continue
     time.sleep(20)
