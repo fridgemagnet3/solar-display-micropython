@@ -55,7 +55,23 @@ def create_minimal_json(solar_json_in):
             solar_data['eToday'] = solar_json_in['data']['eToday']
         if 'eTodayStr' in solar_json_in['data']:
             solar_data['eTodayStr'] = solar_json_in['data']['eTodayStr']
-
+        if 'batteryTodayChargeEnergy' in solar_json_in['data']:
+            solar_data['batteryTodayChargeEnergy'] = solar_json_in['data']['batteryTodayChargeEnergy']
+        if 'batteryTodayChargeEnergyStr' in solar_json_in['data']:
+            solar_data['batteryTodayChargeEnergyStr'] = solar_json_in['data']['batteryTodayChargeEnergyStr']
+        if 'batteryTodayDischargeEnergy' in solar_json_in['data']:
+            solar_data['batteryTodayDischargeEnergy'] = solar_json_in['data']['batteryTodayDischargeEnergy']
+        if 'batteryTodayDischargeEnergyStr' in solar_json_in['data']:
+            solar_data['batteryTodayDischargeEnergyStr'] = solar_json_in['data']['batteryTodayDischargeEnergyStr']
+        if 'gridPurchasedTodayEnergy' in solar_json_in['data']:
+            solar_data['gridPurchasedTodayEnergy'] = solar_json_in['data']['gridPurchasedTodayEnergy']
+        if 'gridPurchasedTodayEnergyStr' in solar_json_in['data']:
+            solar_data['gridPurchasedTodayEnergyStr'] = solar_json_in['data']['gridPurchasedTodayEnergyStr']
+        if 'gridSellTodayEnergy' in solar_json_in['data']:
+            solar_data['gridSellTodayEnergy'] = solar_json_in['data']['gridSellTodayEnergy']
+        if 'gridSellTodayEnergyStr' in solar_json_in['data']:
+            solar_data['gridSellTodayEnergyStr'] = solar_json_in['data']['gridSellTodayEnergyStr']
+ 
         dst_data['data'] = solar_data
 
     return json.dumps(dst_data)
