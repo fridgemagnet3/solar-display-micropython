@@ -142,8 +142,8 @@ def download_solar_readings():
         else:
             syslog.syslog(syslog.LOG_WARNING,"Request failed: " + str(x.status_code))
             return None
-    except:
-        syslog.syslog(syslog.LOG_ERR,"Caught exception requesting solar data")
+    except Exception as e:
+        syslog.syslog(syslog.LOG_ERR,"Caught exception requesting solar data: " + str(e))
         return None
     
 # create broadcast capable socket    
@@ -169,7 +169,7 @@ while True:
         bcount = 0
     else:
         bcount+=1
-    if data!=None:
+    if min_data!=None:
         try:
             sfd.sendto(bytes(min_data,"utf-8"), ('255.255.255.255', 52005) )
         except socket.error:
