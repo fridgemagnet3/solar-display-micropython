@@ -55,6 +55,10 @@ def create_minimal_json(solar_json_in):
             solar_data['eToday'] = solar_json_in['data']['eToday']
         if 'eTodayStr' in solar_json_in['data']:
             solar_data['eTodayStr'] = solar_json_in['data']['eTodayStr']
+        if 'eTotal' in solar_json_in['data']:
+            solar_data['eTotal'] = solar_json_in['data']['eTotal']
+        if 'eTotalStr' in solar_json_in['data']:
+            solar_data['eTotalStr'] = solar_json_in['data']['eTotalStr']
         if 'batteryTodayChargeEnergy' in solar_json_in['data']:
             solar_data['batteryTodayChargeEnergy'] = solar_json_in['data']['batteryTodayChargeEnergy']
         if 'batteryTodayChargeEnergyStr' in solar_json_in['data']:
