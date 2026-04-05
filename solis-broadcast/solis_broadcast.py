@@ -167,9 +167,7 @@ while True:
     if bcount==15:
         syslog.syslog(syslog.LOG_INFO,"Fetch new readings")
         data = download_solar_readings()
-        if data!=None:
-            min_data = create_minimal_json(data)
-            data = str(data)
+        min_data = create_minimal_json(data)
         bcount = 0
     else:
         bcount+=1
