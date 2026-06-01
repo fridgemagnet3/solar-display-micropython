@@ -59,22 +59,22 @@ def create_minimal_json(solar_json_in):
             solar_data['eTotal'] = solar_json_in['data']['eTotal']
         if 'eTotalStr' in solar_json_in['data']:
             solar_data['eTotalStr'] = solar_json_in['data']['eTotalStr']
-        if 'batteryTodayChargeEnergy' in solar_json_in['data']:
-            solar_data['batteryTodayChargeEnergy'] = solar_json_in['data']['batteryTodayChargeEnergy']
-        if 'batteryTodayChargeEnergyStr' in solar_json_in['data']:
-            solar_data['batteryTodayChargeEnergyStr'] = solar_json_in['data']['batteryTodayChargeEnergyStr']
-        if 'batteryTodayDischargeEnergy' in solar_json_in['data']:
-            solar_data['batteryTodayDischargeEnergy'] = solar_json_in['data']['batteryTodayDischargeEnergy']
-        if 'batteryTodayDischargeEnergyStr' in solar_json_in['data']:
-            solar_data['batteryTodayDischargeEnergyStr'] = solar_json_in['data']['batteryTodayDischargeEnergyStr']
-        if 'gridPurchasedTodayEnergy' in solar_json_in['data']:
-            solar_data['gridPurchasedTodayEnergy'] = solar_json_in['data']['gridPurchasedTodayEnergy']
-        if 'gridPurchasedTodayEnergyStr' in solar_json_in['data']:
-            solar_data['gridPurchasedTodayEnergyStr'] = solar_json_in['data']['gridPurchasedTodayEnergyStr']
-        if 'gridSellTodayEnergy' in solar_json_in['data']:
-            solar_data['gridSellTodayEnergy'] = solar_json_in['data']['gridSellTodayEnergy']
-        if 'gridSellTodayEnergyStr' in solar_json_in['data']:
-            solar_data['gridSellTodayEnergyStr'] = solar_json_in['data']['gridSellTodayEnergyStr']
+        if 'batteryTotalChargeEnergy' in solar_json_in['data']:
+            solar_data['batteryTotalChargeEnergy'] = solar_json_in['data']['batteryTotalChargeEnergy']
+        if 'batteryTotalChargeEnergyStr' in solar_json_in['data']:
+            solar_data['batteryTotalChargeEnergyStr'] = solar_json_in['data']['batteryTotalChargeEnergyStr']
+        if 'batteryTotalDischargeEnergy' in solar_json_in['data']:
+            solar_data['batteryTotalDischargeEnergy'] = solar_json_in['data']['batteryTotalDischargeEnergy']
+        if 'batteryTotalDischargeEnergyStr' in solar_json_in['data']:
+            solar_data['batteryTotalDischargeEnergyStr'] = solar_json_in['data']['batteryTotalDischargeEnergyStr']
+        if 'gridPurchasedTotalEnergy' in solar_json_in['data']:
+            solar_data['gridPurchasedTotalEnergy'] = solar_json_in['data']['gridPurchasedTotalEnergy']
+        if 'gridPurchasedTotalEnergyStr' in solar_json_in['data']:
+            solar_data['gridPurchasedTotalEnergyStr'] = solar_json_in['data']['gridPurchasedTotalEnergyStr']
+        if 'gridSellTotalEnergy' in solar_json_in['data']:
+            solar_data['gridSellTotalEnergy'] = solar_json_in['data']['gridSellTotalEnergy']
+        if 'gridSellTotalEnergyStr' in solar_json_in['data']:
+            solar_data['gridSellTotalEnergyStr'] = solar_json_in['data']['gridSellTotalEnergyStr']
  
         dst_data['data'] = solar_data
 
